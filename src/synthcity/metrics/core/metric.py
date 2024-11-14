@@ -51,7 +51,7 @@ class MetricEvaluator(metaclass=ABCMeta):
         n_folds: int = 3,
         task_type: str = "classification",
         random_state: int = 0,
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         use_cache: bool = True,
         default_metric: Optional[str] = None,
     ) -> None:
@@ -71,28 +71,23 @@ class MetricEvaluator(metaclass=ABCMeta):
 
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
     @abstractmethod
-    def evaluate(self, X_gt: DataLoader, X_syn: DataLoader) -> Dict:
-        ...
+    def evaluate(self, X_gt: DataLoader, X_syn: DataLoader) -> Dict: ...
 
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
     @abstractmethod
-    def evaluate_default(self, X_gt: DataLoader, X_syn: DataLoader) -> float:
-        ...
+    def evaluate_default(self, X_gt: DataLoader, X_syn: DataLoader) -> float: ...
 
     @staticmethod
     @abstractmethod
-    def direction() -> str:
-        ...
+    def direction() -> str: ...
 
     @staticmethod
     @abstractmethod
-    def type() -> str:
-        ...
+    def type() -> str: ...
 
     @staticmethod
     @abstractmethod
-    def name() -> str:
-        ...
+    def name() -> str: ...
 
     @classmethod
     def fqdn(cls) -> str:
@@ -105,16 +100,15 @@ class MetricEvaluator(metaclass=ABCMeta):
             return np.max
         elif self._reduction == "min":
             return np.min
+        elif self._reduction == "median":
+            return np.median
         else:
             raise ValueError(f"Unknown reduction {self._reduction}")
 
     def _get_oneclass_model(self, X_gt: np.ndarray) -> OneClassLayer:
         X_hash = dataframe_hash(pd.DataFrame(X_gt))
 
-        cache_file = (
-            self._workspace
-            / f"sc_metric_cache_model_oneclass_{X_hash}_{platform.python_version()}.bkp"
-        )
+        cache_file = self._workspace / f"sc_metric_cache_model_oneclass_{X_hash}_{platform.python_version()}.bkp"
         if cache_file.exists() and self._use_cache:
             return load_from_file(cache_file)
 
