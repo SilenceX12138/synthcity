@@ -39,15 +39,10 @@ class PrivacyEvaluator(MetricEvaluator):
         return "privacy"
 
     @abstractmethod
-    def _evaluate(
-        self, X_gt: DataLoader, X_syn: DataLoader, *args: Any, **kwargs: Any
-    ) -> Dict:
-        ...
+    def _evaluate(self, X_gt: DataLoader, X_syn: DataLoader, *args: Any, **kwargs: Any) -> Dict: ...
 
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
-    def evaluate(
-        self, X_gt: DataLoader, X_syn: DataLoader, *args: Any, **kwargs: Any
-    ) -> Dict:
+    def evaluate(self, X_gt: DataLoader, X_syn: DataLoader, *args: Any, **kwargs: Any) -> Dict:
         cache_file = (
             self._workspace
             / f"sc_metric_cache_{self.type()}_{self.name()}_{X_gt.hash()}_{X_syn.hash()}_{self._reduction}_{platform.python_version()}.bkp"
@@ -95,9 +90,7 @@ class kAnonymization(PrivacyEvaluator):
         for n_clusters in [2, 5, 10, 15]:
             if len(X) / n_clusters < 10:
                 continue
-            cluster = KMeans(
-                n_clusters=n_clusters, init="k-means++", random_state=0
-            ).fit(X[features])
+            cluster = KMeans(n_clusters=n_clusters, init="k-means++", random_state=0).fit(X[features])
             counts: dict = Counter(cluster.labels_)
             values.append(np.min(list(counts.values())))
 
@@ -144,9 +137,7 @@ class lDiversityDistinct(PrivacyEvaluator):
         for n_clusters in [2, 5, 10, 15]:
             if len(X) / n_clusters < 10:
                 continue
-            model = KMeans(n_clusters=n_clusters, init="k-means++", random_state=0).fit(
-                X[features]
-            )
+            model = KMeans(n_clusters=n_clusters, init="k-means++", random_state=0).fit(X[features])
             clusters = model.predict(X.dataframe()[features])
             clusters_df = pd.Series(clusters, index=X.dataframe().index)
             for cluster in range(n_clusters):
@@ -199,9 +190,7 @@ class kMap(PrivacyEvaluator):
         for n_clusters in [2, 5, 10, 15]:
             if len(X_gt) / n_clusters < 10:
                 continue
-            model = KMeans(n_clusters=n_clusters, init="k-means++", random_state=0).fit(
-                X_gt[features]
-            )
+            model = KMeans(n_clusters=n_clusters, init="k-means++", random_state=0).fit(X_gt[features])
             clusters = model.predict(X_syn[features])
             counts: dict = Counter(clusters)
             values.append(np.min(list(counts.values())))
@@ -231,7 +220,7 @@ class DeltaPresence(PrivacyEvaluator):
 
     @staticmethod
     def direction() -> str:
-        return "maximize"
+        return "minimize"
 
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
     def _evaluate(self, X_gt: DataLoader, X_syn: DataLoader) -> Dict:
@@ -244,9 +233,7 @@ class DeltaPresence(PrivacyEvaluator):
         for n_clusters in [2, 5, 10, 15]:
             if len(X_gt) / n_clusters < 10:
                 continue
-            model = KMeans(n_clusters=n_clusters, init="k-means++", random_state=0).fit(
-                X_gt[features]
-            )
+            model = KMeans(n_clusters=n_clusters, init="k-means++", random_state=0).fit(X_gt[features])
             clusters = model.predict(X_syn[features])
             synth_counts: dict = Counter(clusters)
             gt_counts: dict = Counter(model.labels_)
@@ -309,9 +296,7 @@ class IdentifiabilityScore(PrivacyEvaluator):
         return results
 
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
-    def _compute_scores(
-        self, X_gt: DataLoader, X_syn: DataLoader, emb: str = ""
-    ) -> Dict:
+    def _compute_scores(self, X_gt: DataLoader, X_syn: DataLoader, emb: str = "") -> Dict:
         """Compare Wasserstein distance between original data and synthetic data.
 
         Args:
@@ -433,8 +418,7 @@ class DomiasMIA(PrivacyEvaluator):
         reference_set: np.ndarray,
         X_test: np.ndarray,
         device: Any,
-    ) -> Any:
-        ...
+    ) -> Any: ...
 
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
     def _evaluate(
@@ -493,17 +477,13 @@ class DomiasMIA(PrivacyEvaluator):
 
         # get real test sets of members and non members
         X_test = np.concatenate([mem_set, non_mem_set])
-        Y_test = np.concatenate(
-            [np.ones(mem_set.shape[0]), np.zeros(non_mem_set.shape[0])]
-        ).astype(bool)
+        Y_test = np.concatenate([np.ones(mem_set.shape[0]), np.zeros(non_mem_set.shape[0])]).astype(bool)
 
         """ 4. density estimation / evaluation of Eqn.(1) & Eqn.(2)"""
         # First, estimate density of synthetic data then
         # eqn2: \prop P_G(x_i)/P_X(x_i)
         # p_R estimation
-        p_G_evaluated, p_R_evaluated = self.evaluate_p_R(
-            synth_set, synth_val_set, reference_set, X_test, device
-        )
+        p_G_evaluated, p_R_evaluated = self.evaluate_p_R(synth_set, synth_val_set, reference_set, X_test, device)
 
         p_rel = p_G_evaluated / (p_R_evaluated + 1e-10)
 
@@ -592,19 +572,9 @@ class DomiasMIABNAF(DomiasMIA):
         )
         _, p_R_model = _utils.density_estimator_trainer(reference_set)
         p_G_evaluated = np.exp(
-            _utils.compute_log_p_x(
-                p_G_model, torch.as_tensor(X_test).float().to(device)
-            )
-            .cpu()
-            .detach()
-            .numpy()
+            _utils.compute_log_p_x(p_G_model, torch.as_tensor(X_test).float().to(device)).cpu().detach().numpy()
         )
         p_R_evaluated = np.exp(
-            _utils.compute_log_p_x(
-                p_R_model, torch.as_tensor(X_test).float().to(device)
-            )
-            .cpu()
-            .detach()
-            .numpy()
+            _utils.compute_log_p_x(p_R_model, torch.as_tensor(X_test).float().to(device)).cpu().detach().numpy()
         )
         return p_G_evaluated, p_R_evaluated
