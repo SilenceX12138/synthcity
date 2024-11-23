@@ -22,9 +22,7 @@ import synthcity.logger as log
 from synthcity.metrics._utils import get_frequency
 from synthcity.metrics.core import MetricEvaluator
 from synthcity.plugins.core.dataloader import DataLoader
-from synthcity.plugins.core.models.survival_analysis.metrics import (
-    nonparametric_distance,
-)
+from synthcity.plugins.core.models.survival_analysis.metrics import nonparametric_distance
 from synthcity.utils.reproducibility import clear_cache
 from synthcity.utils.serialization import load_from_file, save_to_file
 
@@ -44,8 +42,7 @@ class StatisticalEvaluator(MetricEvaluator):
         return "stats"
 
     @abstractmethod
-    def _evaluate(self, X_gt: DataLoader, X_syn: DataLoader) -> Dict:
-        ...
+    def _evaluate(self, X_gt: DataLoader, X_syn: DataLoader) -> Dict: ...
 
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
     def evaluate(self, X_gt: DataLoader, X_syn: DataLoader) -> Dict:
@@ -96,9 +93,7 @@ class InverseKLDivergence(StatisticalEvaluator):
 
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
     def _evaluate(self, X_gt: DataLoader, X_syn: DataLoader) -> Dict:
-        freqs = get_frequency(
-            X_gt.dataframe(), X_syn.dataframe(), n_histogram_bins=self._n_histogram_bins
-        )
+        freqs = get_frequency(X_gt.dataframe(), X_syn.dataframe(), n_histogram_bins=self._n_histogram_bins)
         res = []
         for col in X_gt.columns:
             gt_freq, synth_freq = freqs[col]
@@ -169,9 +164,7 @@ class ChiSquaredTest(StatisticalEvaluator):
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
     def _evaluate(self, X_gt: DataLoader, X_syn: DataLoader) -> Dict:
         res = []
-        freqs = get_frequency(
-            X_gt.dataframe(), X_syn.dataframe(), n_histogram_bins=self._n_histogram_bins
-        )
+        freqs = get_frequency(X_gt.dataframe(), X_syn.dataframe(), n_histogram_bins=self._n_histogram_bins)
 
         for col in X_gt.columns:
             gt_freq, synth_freq = freqs[col]
@@ -318,9 +311,7 @@ class JensenShannonDistance(StatisticalEvaluator):
             local_bins = min(self._n_histogram_bins, len(X_gt[col].unique()))
             X_gt_bin, gt_bins = pd.cut(X_gt[col], bins=local_bins, retbins=True)
             X_syn_bin = pd.cut(X_syn[col], bins=gt_bins)
-            stats_gt[col], stats_syn[col] = X_gt_bin.value_counts(
-                dropna=False, normalize=self.normalize
-            ).align(
+            stats_gt[col], stats_syn[col] = X_gt_bin.value_counts(dropna=False, normalize=self.normalize).align(
                 X_syn_bin.value_counts(dropna=False, normalize=self.normalize),
                 join="outer",
                 axis=0,
@@ -378,13 +369,11 @@ class WassersteinDistance(StatisticalEvaluator):
         X: DataLoader,
         X_syn: DataLoader,
     ) -> Dict:
-        X_ = X.numpy().reshape(len(X), -1)
-        X_syn_ = X_syn.numpy().reshape(len(X_syn), -1)
+        X_ = np.ascontiguousarray(X.numpy().reshape(len(X), -1))
+        X_syn_ = np.ascontiguousarray(X_syn.numpy().reshape(len(X_syn), -1))
 
         if len(X_) > len(X_syn_):
-            X_syn_ = np.concatenate(
-                [X_syn_, np.zeros((len(X_) - len(X_syn_), X_.shape[1]))]
-            )
+            X_syn_ = np.concatenate([X_syn_, np.zeros((len(X_) - len(X_syn_), X_.shape[1]))])
 
         scaler = MinMaxScaler().fit(X_)
 
@@ -429,17 +418,15 @@ class PRDCScore(StatisticalEvaluator):
         X: DataLoader,
         X_syn: DataLoader,
     ) -> Dict:
-        X_ = X.numpy().reshape(len(X), -1)
-        X_syn_ = X_syn.numpy().reshape(len(X_syn), -1)
+        X_ = np.ascontiguousarray(X.numpy().reshape(len(X), -1))
+        X_syn_ = np.ascontiguousarray(X_syn.numpy().reshape(len(X_syn), -1))
 
         # Default representation
         results = self._compute_prdc(X_, X_syn_)
 
         return results
 
-    def _compute_pairwise_distance(
-        self, data_x: np.ndarray, data_y: Optional[np.ndarray] = None
-    ) -> np.ndarray:
+    def _compute_pairwise_distance(self, data_x: np.ndarray, data_y: Optional[np.ndarray] = None) -> np.ndarray:
         """
         Args:
             data_x: numpy.ndarray([N, feature_dim], dtype=np.float32)
@@ -453,9 +440,7 @@ class PRDCScore(StatisticalEvaluator):
         dists = metrics.pairwise_distances(data_x, data_y)
         return dists
 
-    def _get_kth_value(
-        self, unsorted: np.ndarray, k: int, axis: int = -1
-    ) -> np.ndarray:
+    def _get_kth_value(self, unsorted: np.ndarray, k: int, axis: int = -1) -> np.ndarray:
         """
         Args:
             unsorted: numpy.ndarray of any dimensionality.
@@ -468,9 +453,7 @@ class PRDCScore(StatisticalEvaluator):
         kth_values = k_smallests.max(axis=axis)
         return kth_values
 
-    def _compute_nearest_neighbour_distances(
-        self, input_features: np.ndarray, nearest_k: int
-    ) -> np.ndarray:
+    def _compute_nearest_neighbour_distances(self, input_features: np.ndarray, nearest_k: int) -> np.ndarray:
         """
         Args:
             input_features: numpy.ndarray
@@ -482,9 +465,7 @@ class PRDCScore(StatisticalEvaluator):
         radii = self._get_kth_value(distances, k=nearest_k + 1, axis=-1)
         return radii
 
-    def _compute_prdc(
-        self, real_features: np.ndarray, fake_features: np.ndarray
-    ) -> Dict:
+    def _compute_prdc(self, real_features: np.ndarray, fake_features: np.ndarray) -> Dict:
         """
         Computes precision, recall, density, and coverage given two manifolds.
         Args:
@@ -494,46 +475,21 @@ class PRDCScore(StatisticalEvaluator):
             dict of precision, recall, density, and coverage.
         """
 
-        real_nearest_neighbour_distances = self._compute_nearest_neighbour_distances(
-            real_features, self.nearest_k
-        )
-        fake_nearest_neighbour_distances = self._compute_nearest_neighbour_distances(
-            fake_features, self.nearest_k
-        )
-        distance_real_fake = self._compute_pairwise_distance(
-            real_features, fake_features
-        )
+        real_nearest_neighbour_distances = self._compute_nearest_neighbour_distances(real_features, self.nearest_k)
+        fake_nearest_neighbour_distances = self._compute_nearest_neighbour_distances(fake_features, self.nearest_k)
+        distance_real_fake = self._compute_pairwise_distance(real_features, fake_features)
 
-        precision = (
-            (
-                distance_real_fake
-                < np.expand_dims(real_nearest_neighbour_distances, axis=1)
-            )
-            .any(axis=0)
-            .mean()
-        )
+        precision = (distance_real_fake < np.expand_dims(real_nearest_neighbour_distances, axis=1)).any(axis=0).mean()
 
-        recall = (
-            (
-                distance_real_fake
-                < np.expand_dims(fake_nearest_neighbour_distances, axis=0)
-            )
-            .any(axis=1)
-            .mean()
-        )
+        recall = (distance_real_fake < np.expand_dims(fake_nearest_neighbour_distances, axis=0)).any(axis=1).mean()
 
         density = (1.0 / float(self.nearest_k)) * (
-            distance_real_fake
-            < np.expand_dims(real_nearest_neighbour_distances, axis=1)
+            distance_real_fake < np.expand_dims(real_nearest_neighbour_distances, axis=1)
         ).sum(axis=0).mean()
 
-        coverage = (
-            distance_real_fake.min(axis=1) < real_nearest_neighbour_distances
-        ).mean()
+        coverage = (distance_real_fake.min(axis=1) < real_nearest_neighbour_distances).mean()
 
-        return dict(
-            precision=precision, recall=recall, density=density, coverage=coverage
-        )
+        return dict(precision=precision, recall=recall, density=density, coverage=coverage)
 
 
 class AlphaPrecision(StatisticalEvaluator):
@@ -572,8 +528,6 @@ class AlphaPrecision(StatisticalEvaluator):
         X_syn: np.ndarray,
         emb_center: Optional[np.ndarray] = None,
     ) -> Tuple:
-        if len(X) != len(X_syn):
-            raise RuntimeError("The real and synthetic data must have the same length")
 
         if emb_center is None:
             emb_center = np.mean(X, axis=0)
@@ -591,21 +545,20 @@ class AlphaPrecision(StatisticalEvaluator):
         synth_to_center = np.sqrt(np.sum((X_syn - emb_center) ** 2, axis=1))
 
         nbrs_real = NearestNeighbors(n_neighbors=2, n_jobs=-1, p=2).fit(X)
-        real_to_real, _ = nbrs_real.kneighbors(X)
+        real_to_real, real_to_real_args = nbrs_real.kneighbors(X)
 
         nbrs_synth = NearestNeighbors(n_neighbors=1, n_jobs=-1, p=2).fit(X_syn)
         real_to_synth, real_to_synth_args = nbrs_synth.kneighbors(X)
 
         # Let us find closest real point to any real point, excluding itself (therefore 1 instead of 0)
         real_to_real = real_to_real[:, 1].squeeze()
+        real_to_real_args = real_to_real_args[:, 1].squeeze()
         real_to_synth = real_to_synth.squeeze()
         real_to_synth_args = real_to_synth_args.squeeze()
 
         real_synth_closest = X_syn[real_to_synth_args]
 
-        real_synth_closest_d = np.sqrt(
-            np.sum((real_synth_closest - synth_center) ** 2, axis=1)
-        )
+        real_synth_closest_d = np.sqrt(np.sum((real_synth_closest - synth_center) ** 2, axis=1))
         closest_synth_Radii = np.quantile(real_synth_closest_d, alphas)
 
         for k in range(len(Radii)):
@@ -613,30 +566,25 @@ class AlphaPrecision(StatisticalEvaluator):
             alpha_precision = np.mean(precision_audit_mask)
 
             beta_coverage = np.mean(
-                (
-                    (real_to_synth <= real_to_real)
-                    * (real_synth_closest_d <= closest_synth_Radii[k])
-                )
+                ((real_to_synth <= real_to_real) * (real_synth_closest_d <= closest_synth_Radii[k]))
             )
 
             alpha_precision_curve.append(alpha_precision)
             beta_coverage_curve.append(beta_coverage)
 
         # See which one is bigger
-
-        authen = real_to_real[real_to_synth_args] < real_to_synth
+        # The original implementation uses the following, where the index of `real_to_real` seems wrong.
+        # According to the paper ()https://arxiv.org/abs/2102.08921), the first distance should be real samples to the nearest real sample.
+        # authen = real_to_real[real_to_synth_args] < real_to_synth
+        authen = real_to_real[real_to_real_args] < real_to_synth
         authenticity = np.mean(authen)
 
-        Delta_precision_alpha = 1 - np.sum(
-            np.abs(np.array(alphas) - np.array(alpha_precision_curve))
-        ) / np.sum(alphas)
+        Delta_precision_alpha = 1 - np.sum(np.abs(np.array(alphas) - np.array(alpha_precision_curve))) / np.sum(alphas)
 
         if Delta_precision_alpha < 0:
             raise RuntimeError("negative value detected for Delta_precision_alpha")
 
-        Delta_coverage_beta = 1 - np.sum(
-            np.abs(np.array(alphas) - np.array(beta_coverage_curve))
-        ) / np.sum(alphas)
+        Delta_coverage_beta = 1 - np.sum(np.abs(np.array(alphas) - np.array(beta_coverage_curve))) / np.sum(alphas)
 
         if Delta_coverage_beta < 0:
             raise RuntimeError("negative value detected for Delta_coverage_beta")
@@ -677,30 +625,18 @@ class AlphaPrecision(StatisticalEvaluator):
         if hasattr(X, "target_column"):
             X_gt_norm_df = pd.DataFrame(
                 scaler.transform(X_gt_norm),
-                columns=[
-                    col
-                    for col in X.train().dataframe().columns
-                    if col != X.target_column
-                ],
+                columns=[col for col in X.train().dataframe().columns if col != X.target_column],
             )
         else:
-            X_gt_norm_df = pd.DataFrame(
-                scaler.transform(X_gt_norm), columns=X.train().dataframe().columns
-            )
+            X_gt_norm_df = pd.DataFrame(scaler.transform(X_gt_norm), columns=X.train().dataframe().columns)
 
         if hasattr(X_syn, "target_column"):
             X_syn_norm_df = pd.DataFrame(
                 scaler.transform(X_syn_norm),
-                columns=[
-                    col
-                    for col in X_syn.dataframe().columns
-                    if col != X_syn.target_column
-                ],
+                columns=[col for col in X_syn.dataframe().columns if col != X_syn.target_column],
             )
         else:
-            X_syn_norm_df = pd.DataFrame(
-                scaler.transform(X_syn_norm), columns=X_syn.dataframe().columns
-            )
+            X_syn_norm_df = pd.DataFrame(scaler.transform(X_syn_norm), columns=X_syn.dataframe().columns)
 
         return (X_gt_norm_df, X_syn_norm_df)
 
@@ -712,8 +648,8 @@ class AlphaPrecision(StatisticalEvaluator):
     ) -> Dict:
         results = {}
 
-        X_ = X.numpy().reshape(len(X), -1)
-        X_syn_ = X_syn.numpy().reshape(len(X_syn), -1)
+        X_ = np.ascontiguousarray(X.numpy().reshape(len(X), -1))
+        X_syn_ = np.ascontiguousarray(X_syn.numpy().reshape(len(X_syn), -1))
 
         # OneClass representation
         emb = "_OC"
@@ -777,9 +713,7 @@ class SurvivalKMDistance(StatisticalEvaluator):
         X_syn: DataLoader,
     ) -> Dict:
         if self._task_type != "survival_analysis":
-            raise RuntimeError(
-                f"The metric is valid only for survival analysis tasks, but got {self._task_type}"
-            )
+            raise RuntimeError(f"The metric is valid only for survival analysis tasks, but got {self._task_type}")
         if X.type() != "survival_analysis" or X_syn.type() != "survival_analysis":
             raise RuntimeError(
                 f"The metric is valid only for survival analysis tasks, but got datasets {X.type()} and {X_syn.type()}"
@@ -788,9 +722,7 @@ class SurvivalKMDistance(StatisticalEvaluator):
         _, real_T, real_E = X.unpack()
         _, syn_T, syn_E = X_syn.unpack()
 
-        optimism, abs_optimism, sightedness = nonparametric_distance(
-            (real_T, real_E), (syn_T, syn_E)
-        )
+        optimism, abs_optimism, sightedness = nonparametric_distance((real_T, real_E), (syn_T, syn_E))
 
         return {
             "optimism": optimism,
@@ -875,9 +807,7 @@ class FrechetInceptionDistance(StatisticalEvaluator):
             raise RuntimeError("Training and test mean vectors have different lengths")
 
         if sigma1.shape != sigma2.shape:
-            raise RuntimeError(
-                "Training and test covariances have different dimensions"
-            )
+            raise RuntimeError("Training and test covariances have different dimensions")
 
         diff = mu1 - mu2
 
