@@ -133,7 +133,7 @@ class CTGANPlugin(Plugin):
         n_iter_min: int = 100,
         adjust_inference_sampling: bool = False,
         # core plugin arguments
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         compress_dataset: bool = False,
         sampling_patience: int = 500,
         **kwargs: Any

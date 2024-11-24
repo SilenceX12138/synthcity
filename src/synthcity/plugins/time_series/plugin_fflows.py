@@ -13,15 +13,8 @@ from fflows import FourierFlow
 # synthcity absolute
 from synthcity.plugins import Plugins
 from synthcity.plugins.core.dataloader import DataLoader
-from synthcity.plugins.core.distribution import (
-    CategoricalDistribution,
-    Distribution,
-    IntegerDistribution,
-)
-from synthcity.plugins.core.models.tabular_encoder import (
-    TabularEncoder,
-    TimeSeriesTabularEncoder,
-)
+from synthcity.plugins.core.distribution import CategoricalDistribution, Distribution, IntegerDistribution
+from synthcity.plugins.core.models.tabular_encoder import TabularEncoder, TimeSeriesTabularEncoder
 from synthcity.plugins.core.models.ts_model import TimeSeriesModel
 from synthcity.plugins.core.plugin import Plugin
 from synthcity.plugins.core.schema import Schema
@@ -105,7 +98,7 @@ class FourierFlowsPlugin(Plugin):
         encoder_max_clusters: int = 10,
         # core plugin arguments
         random_state: int = 0,
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         compress_dataset: bool = False,
         sampling_patience: int = 500,
         **kwargs: Any,

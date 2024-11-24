@@ -11,11 +11,7 @@ from sklearn.model_selection import train_test_split
 import synthcity.logger as log
 from synthcity.metrics.eval_detection import SyntheticDetectionMLP
 from synthcity.utils.redis_wrapper import RedisBackend
-from synthcity.utils.serialization import (
-    dataframe_cols_hash,
-    load_from_file,
-    save_to_file,
-)
+from synthcity.utils.serialization import dataframe_cols_hash, load_from_file, save_to_file
 
 threshold = 10
 
@@ -29,7 +25,7 @@ def search_parameters(
     random_state: int = 0,
     fail_score: int = 99,
     dry_run: bool = False,
-    workspace: Path = Path("workspace"),
+    workspace: Path = Path("logs/synthcity_workspace"),
     predefined_params: dict = {},
 ) -> Optional[dict]:
     direction = "minimize"

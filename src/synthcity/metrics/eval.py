@@ -7,11 +7,7 @@ import pandas as pd
 from pydantic import validate_arguments
 
 # synthcity absolute
-from synthcity.plugins.core.dataloader import (
-    DataLoader,
-    GenericDataLoader,
-    create_from_info,
-)
+from synthcity.plugins.core.dataloader import DataLoader, GenericDataLoader, create_from_info
 
 # synthcity relative
 from .eval_detection import (
@@ -117,7 +113,7 @@ class Metrics:
         metrics: Optional[Dict] = None,
         task_type: str = "classification",
         random_state: int = 0,
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         use_cache: bool = True,
         n_folds: int = 5,
     ) -> pd.DataFrame:

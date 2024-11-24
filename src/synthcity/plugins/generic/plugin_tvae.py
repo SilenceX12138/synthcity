@@ -116,7 +116,7 @@ class TVAEPlugin(Plugin):
         patience: int = 5,
         # core plugin arguments
         device: Any = DEVICE,
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         compress_dataset: bool = False,
         sampling_patience: int = 500,
         **kwargs: Any

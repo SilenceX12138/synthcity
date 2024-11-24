@@ -73,7 +73,7 @@ class BayesianNetworkPlugin(Plugin):
         encoder_max_clusters: int = 10,
         encoder_noise_scale: float = 0.1,
         # core plugin
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         compress_dataset: bool = False,
         random_state: int = 0,
         sampling_patience: int = 500,

@@ -15,12 +15,7 @@ from pydantic import validate_arguments
 
 # synthcity absolute
 from synthcity.plugins.core.dataloader import DataLoader
-from synthcity.plugins.core.distribution import (
-    Distribution,
-    FloatDistribution,
-    IntegerDistribution,
-    LogDistribution,
-)
+from synthcity.plugins.core.distribution import Distribution, FloatDistribution, IntegerDistribution, LogDistribution
 from synthcity.plugins.core.models.tabular_aim import TabularAIM
 from synthcity.plugins.core.plugin import Plugin
 from synthcity.plugins.core.schema import Schema
@@ -63,7 +58,7 @@ class AIMPlugin(Plugin):
         device: Union[str, torch.device] = DEVICE,
         random_state: int = 0,
         sampling_patience: int = 500,
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         compress_dataset: bool = False,
         **kwargs: Any,
     ) -> None:
@@ -83,7 +78,7 @@ class AIMPlugin(Plugin):
             sampling_patience: int = 500
                 Max inference iterations to wait for the generated data to match the training schema. Defaults to 500.
             workspace: Path
-                Path for caching intermediary results. Defaults to Path("workspace").
+                Path for caching intermediary results. Defaults to Path("logs/synthcity_workspace").
             compress_dataset: bool. Default = False
                 Drop redundant features before training the generator. Defaults to False.
             dataloader_sampler: Any = None

@@ -84,7 +84,7 @@ class SurvivalGANPlugin(Plugin):
         device: Any = DEVICE,
         use_survival_conditional: bool = True,
         # core plugin arguments
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         random_state: int = 0,
         compress_dataset: bool = False,
         sampling_patience: int = 500,

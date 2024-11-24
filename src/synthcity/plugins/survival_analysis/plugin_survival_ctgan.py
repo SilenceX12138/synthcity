@@ -76,7 +76,7 @@ class SurvivalCTGANPlugin(Plugin):
         censoring_strategy: str = "random",  # "covariate_dependent"
         device: Any = DEVICE,
         # core plugin arguments
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         random_state: int = 0,
         compress_dataset: bool = False,
         sampling_patience: int = 500,

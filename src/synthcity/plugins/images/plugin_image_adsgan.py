@@ -15,11 +15,7 @@ import synthcity.logger as log
 from synthcity.metrics.weighted_metrics import WeightedMetrics
 from synthcity.plugins.core.dataloader import DataLoader
 from synthcity.plugins.core.dataset import TensorDataset
-from synthcity.plugins.core.distribution import (
-    CategoricalDistribution,
-    Distribution,
-    FloatDistribution,
-)
+from synthcity.plugins.core.distribution import CategoricalDistribution, Distribution, FloatDistribution
 from synthcity.plugins.core.models.convnet import (
     suggest_image_classifier_arch,
     suggest_image_generator_discriminator_arch,
@@ -136,7 +132,7 @@ class ImageAdsGANPlugin(Plugin):
         plot_progress: int = False,
         early_stopping: bool = True,
         # core plugin arguments
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         sampling_patience: int = 500,
         **kwargs: Any
     ) -> None:

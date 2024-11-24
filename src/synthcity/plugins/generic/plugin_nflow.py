@@ -132,7 +132,7 @@ class NormalizingFlowsPlugin(Plugin):
         patience: int = 5,
         patience_metric: Optional[WeightedMetrics] = None,
         # core plugin arguments
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         compress_dataset: bool = False,
         sampling_patience: int = 500,
         random_state: int = 0,
