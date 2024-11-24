@@ -169,7 +169,7 @@ class TimeGANPlugin(Plugin):
         dataloader_sampling_strategy: str = "imbalanced_time_censoring",  # none, imbalanced_censoring, imbalanced_time_censoring
         # core plugin arguments
         random_state: int = 0,
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         compress_dataset: bool = False,
         sampling_patience: int = 500,
         **kwargs: Any,

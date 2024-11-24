@@ -16,9 +16,7 @@ import synthcity.plugins as plugins
 from synthcity.plugins.core.dataloader import DataLoader
 from synthcity.plugins.core.distribution import Distribution
 from synthcity.plugins.core.models.time_to_event import TimeToEventPlugin
-from synthcity.plugins.core.models.time_to_event import (
-    get_model_template as get_tte_model_template,
-)
+from synthcity.plugins.core.models.time_to_event import get_model_template as get_tte_model_template
 from synthcity.plugins.core.plugin import Plugin
 from synthcity.plugins.core.schema import Schema
 from synthcity.utils.constants import DEVICE
@@ -61,7 +59,7 @@ class SurvivalPipeline(Plugin):
         censoring_strategy: str = "random",  # "covariate_dependent"
         device: Any = DEVICE,
         # core plugin arguments
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         random_state: int = 0,
         compress_dataset: bool = False,
         sampling_patience: int = 500,

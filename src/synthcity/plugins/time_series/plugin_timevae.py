@@ -149,7 +149,7 @@ class TimeVAEPlugin(Plugin):
         embedding_penalty: float = 10,
         # core plugin arguments
         random_state: int = 0,
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         compress_dataset: bool = False,
         sampling_patience: int = 500,
         **kwargs: Any,

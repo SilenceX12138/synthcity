@@ -18,6 +18,6 @@ def run_before_tests() -> Generator:
     yield
 
     # cleanup after test
-    workspace = Path("workspace")
+    workspace = Path("logs/synthcity_workspace")
     if workspace.exists():
         shutil.rmtree(workspace, ignore_errors=True)

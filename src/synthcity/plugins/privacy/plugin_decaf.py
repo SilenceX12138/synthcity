@@ -153,7 +153,7 @@ class DECAFPlugin(Plugin):
         encoder_max_clusters: int = 10,
         device: Any = DEVICE,
         # core plugin arguments
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         compress_dataset: bool = False,
         sampling_patience: int = 500,
         **kwargs: Any,

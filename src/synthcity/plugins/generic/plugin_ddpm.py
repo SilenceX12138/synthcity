@@ -16,12 +16,7 @@ from pydantic import validate_arguments
 # synthcity absolute
 from synthcity.metrics.weighted_metrics import WeightedMetrics
 from synthcity.plugins.core.dataloader import DataLoader
-from synthcity.plugins.core.distribution import (
-    Distribution,
-    IntegerDistribution,
-    IntLogDistribution,
-    LogDistribution,
-)
+from synthcity.plugins.core.distribution import Distribution, IntegerDistribution, IntLogDistribution, LogDistribution
 from synthcity.plugins.core.models.tabular_ddpm import TabDDPM
 from synthcity.plugins.core.models.tabular_encoder import TabularEncoder
 from synthcity.plugins.core.plugin import Plugin
@@ -113,7 +108,7 @@ class TabDDPMPlugin(Plugin):
         validation_metric: Optional[WeightedMetrics] = None,
         # core plugin arguments
         random_state: int = 0,
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         compress_dataset: bool = False,
         sampling_patience: int = 500,
         **kwargs: Any

@@ -318,7 +318,7 @@ def save_model(
     optimizer: Any,
     epoch: int,
     save: bool = False,
-    workspace: Path = Path("workspace"),
+    workspace: Path = Path("logs/synthcity_workspace"),
 ) -> Callable:
     workspace.mkdir(parents=True, exist_ok=True)
 
@@ -340,7 +340,7 @@ def save_model(
 def load_model(
     model: nn.Module,
     optimizer: Any,
-    workspace: Path = Path("workspace"),
+    workspace: Path = Path("logs/synthcity_workspace"),
 ) -> Callable:
     def f() -> None:
         if workspace.exists():
@@ -372,7 +372,7 @@ def train(
     data_loader_train: torch.utils.data.DataLoader,
     data_loader_valid: torch.utils.data.DataLoader,
     data_loader_test: torch.utils.data.DataLoader,
-    workspace: Path = Path("workspace"),
+    workspace: Path = Path("logs/synthcity_workspace"),
     start_epoch: int = 0,
     device: Any = DEVICE,
     epochs: int = 50,
@@ -477,7 +477,7 @@ def density_estimator_trainer(
     layers: int = 3,
     hidden_dim: int = 32,
     residual: Optional[str] = "gated",  # [None, "normal", "gated"]
-    workspace: Path = Path("workspace"),
+    workspace: Path = Path("logs/synthcity_workspace"),
     decay: float = 0.5,
     patience: int = 20,
     cooldown: int = 10,

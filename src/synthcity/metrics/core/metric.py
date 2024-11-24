@@ -38,7 +38,7 @@ class MetricEvaluator(metaclass=ABCMeta):
         task_type: str
             The type of downstream task. Default: 'classification'.
         workspace: Path
-            The directory to save intermediate models or results. Default: Path("workspace").
+            The directory to save intermediate models or results. Default: Path("logs/synthcity_workspace").
         use_cache: bool
             Whether to use cache. If True, it will try to load saved results in workspace directory where possible.
     """

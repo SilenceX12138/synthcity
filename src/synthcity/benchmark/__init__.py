@@ -52,7 +52,7 @@ class Benchmarks:
         synthetic_reuse_if_exists: bool = True,
         augmented_reuse_if_exists: bool = True,
         task_type: str = "classification",  # classification, regression, survival_analysis, time_series
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
         augmentation_rule: str = "equal",
         strict_augmentation: bool = False,
         ad_hoc_augment_vals: Optional[Dict] = None,

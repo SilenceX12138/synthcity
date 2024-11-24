@@ -8,11 +8,7 @@ import pandas as pd
 from pydantic import validate_arguments
 
 # synthcity absolute
-from synthcity.plugins.core.dataloader import (
-    DataLoader,
-    GenericDataLoader,
-    create_from_info,
-)
+from synthcity.plugins.core.dataloader import DataLoader, GenericDataLoader, create_from_info
 
 # synthcity relative
 from .eval import standard_metrics
@@ -25,7 +21,7 @@ class WeightedMetrics:
         weights: List[float],
         task_type: str = "classification",
         random_state: int = 0,
-        workspace: Path = Path("workspace"),
+        workspace: Path = Path("logs/synthcity_workspace"),
     ) -> None:
         if len(metrics) != len(weights):
             raise ValueError("Metrics and weights should have the same length")
