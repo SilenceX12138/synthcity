@@ -361,7 +361,7 @@ class Plugin(Serializable, metaclass=ABCMeta):
 
         if not X_syn.satisfies(gen_constraints) and self.strict:
             raise RuntimeError(
-                f"Plugin {self.name()} failed to meet the synthetic constraints."
+                f"Plugin {self.name()} failed to meet the synthetic constraints ({gen_constraints})."
             )
 
         if self.strict:
