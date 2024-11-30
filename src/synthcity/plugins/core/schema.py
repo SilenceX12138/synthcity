@@ -3,14 +3,7 @@ from typing import Any, Dict, Generator, List, Optional, Union
 
 # third party
 import pandas as pd
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    field_validator,
-    model_validator,
-    validate_arguments,
-)
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator, validate_arguments
 
 # synthcity absolute
 import synthcity.logger as log
@@ -60,9 +53,7 @@ class Schema(BaseModel):
             elif isinstance(v, DataLoader):
                 return v
             else:
-                raise ValueError(
-                    f"Invalid data type for 'data': {type(v)}. Expected DataLoader or pandas DataFrame."
-                )
+                raise ValueError(f"Invalid data type for 'data': {type(v)}. Expected DataLoader or pandas DataFrame.")
         return v
 
     @model_validator(mode="after")
@@ -153,9 +144,7 @@ class Schema(BaseModel):
         for feature in self.domain:
             if feature not in X.columns:
                 continue
-            X[feature] = X[feature].astype(
-                self.domain[feature].dtype(), errors="ignore"
-            )
+            X[feature] = X[feature].astype(self.domain[feature].dtype(), errors="ignore")
 
         return X
 
@@ -234,18 +223,14 @@ class Schema(BaseModel):
             elif dtype in ["category", "object"]:
                 choices = params.get("choices")
                 if choices is None or not choices:
-                    raise ValueError(
-                        f"Cannot create CategoricalDistribution for '{feature}' without 'choices'."
-                    )
+                    raise ValueError(f"Cannot create CategoricalDistribution for '{feature}' without 'choices'.")
                 domain[feature] = CategoricalDistribution(
                     name=params["name"],
                     random_state=params["random_state"],
                     choices=list(set(choices)),
                 )
             else:
-                raise ValueError(
-                    f"Unsupported dtype '{dtype}' for feature '{feature}'."
-                )
+                raise ValueError(f"Unsupported dtype '{dtype}' for feature '{feature}'.")
 
         return cls(domain=domain)
 
@@ -302,9 +287,7 @@ class Schema(BaseModel):
                             random_state=col_random_state,
                         )
                     else:
-                        raise ValueError(
-                            f"Unsupported data type for column '{col}' with dtype {X[col].dtype}"
-                        )
+                        raise ValueError(f"Unsupported data type for column '{col}' with dtype {X[col].dtype}")
                 elif sampling_strategy == "uniform":
 
                     is_categorical = pd.api.types.is_categorical_dtype(X[col])
@@ -350,9 +333,7 @@ class Schema(BaseModel):
                             sampling_strategy=sampling_strategy,
                         )
                 else:
-                    raise ValueError(
-                        f"Unsupported sampling strategy '{sampling_strategy}'"
-                    )
+                    raise ValueError(f"Unsupported sampling strategy '{sampling_strategy}'")
             except Exception as e:
                 log.error(f"Exception occurred while processing column '{col}': {e}")
                 raise

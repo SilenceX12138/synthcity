@@ -132,9 +132,7 @@ class Plugin(Serializable, metaclass=ABCMeta):
         return results
 
     @classmethod
-    def sample_hyperparameters_optuna(
-        cls, trial: Any, *args: Any, **kwargs: Any
-    ) -> Dict[str, Any]:
+    def sample_hyperparameters_optuna(cls, trial: Any, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         param_space = cls.hyperparameter_space(*args, **kwargs)
 
         results = {}
@@ -231,19 +229,20 @@ class Plugin(Serializable, metaclass=ABCMeta):
             random_state=self.random_state,
         )
 
-        if X.is_tabular():
-            X, self._data_encoders = X.encode()
-            if self.compress_dataset:
-                X_hash = X.hash()
-                bkp_file = (
-                    self.workspace
-                    / f"compressed_df_{X_hash}_{platform.python_version()}.bkp"
-                )
-                if not bkp_file.exists():
-                    X_compressed_context = X.compress()
-                    save_to_file(bkp_file, X_compressed_context)
+        # Decouple the data preprocessing from the model fitting
+        # if X.is_tabular():
+        #     X, self._data_encoders = X.encode()
+        #     if self.compress_dataset:
+        #         X_hash = X.hash()
+        #         bkp_file = (
+        #             self.workspace
+        #             / f"compressed_df_{X_hash}_{platform.python_version()}.bkp"
+        #         )
+        #         if not bkp_file.exists():
+        #             X_compressed_context = X.compress()
+        #             save_to_file(bkp_file, X_compressed_context)
 
-                X, self.compress_context = load_from_file(bkp_file)
+        #         X, self.compress_context = load_from_file(bkp_file)
 
         self._training_schema = Schema(
             data=X,
@@ -332,9 +331,7 @@ class Plugin(Serializable, metaclass=ABCMeta):
 
         has_gen_cond = "cond" in kwargs and kwargs["cond"] is not None
         if has_gen_cond and not self.expecting_conditional:
-            raise RuntimeError(
-                "Conditional mismatch. Got inference conditional, without any training conditional"
-            )
+            raise RuntimeError("Conditional mismatch. Got inference conditional, without any training conditional")
 
         if count is None:
             count = self.data_info["len"]
@@ -342,27 +339,31 @@ class Plugin(Serializable, metaclass=ABCMeta):
         # We use the training schema for the generation
         gen_constraints = self.training_schema().as_constraints()
         if constraints is not None:
-            gen_constraints = gen_constraints.extend(constraints)
+            if self.strict:
+                gen_constraints = gen_constraints.extend(constraints)
+            else:
+                gen_constraints = constraints
 
         syn_schema = Schema.from_constraints(gen_constraints)
 
         X_syn = self._generate(count=count, syn_schema=syn_schema, **kwargs)
 
-        if X_syn.is_tabular():
-            if self.compress_dataset:
-                X_syn = X_syn.decompress(self.compress_context)
-            if self._data_encoders is not None:
-                X_syn = X_syn.decode(self._data_encoders)
+        # if X_syn.is_tabular():
+        #     if self.compress_dataset:
+        #         X_syn = X_syn.decompress(self.compress_context)
+        #     if self._data_encoders is not None:
+        #         X_syn = X_syn.decode(self._data_encoders)
 
         # The dataset is decompressed here, we can use the public schema
         gen_constraints = self.schema().as_constraints()
         if constraints is not None:
-            gen_constraints = gen_constraints.extend(constraints)
+            if self.strict:
+                gen_constraints = gen_constraints.extend(constraints)
+            else:
+                gen_constraints = constraints
 
         if not X_syn.satisfies(gen_constraints) and self.strict:
-            raise RuntimeError(
-                f"Plugin {self.name()} failed to meet the synthetic constraints ({gen_constraints})."
-            )
+            raise RuntimeError(f"Plugin {self.name()} failed to meet the synthetic constraints ({gen_constraints}).")
 
         if self.strict:
             X_syn = X_syn.match(gen_constraints)
@@ -392,18 +393,14 @@ class Plugin(Serializable, metaclass=ABCMeta):
         ...
 
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
-    def _safe_generate(
-        self, gen_cbk: Callable, count: int, syn_schema: Schema, **kwargs: Any
-    ) -> DataLoader:
+    def _safe_generate(self, gen_cbk: Callable, count: int, syn_schema: Schema, **kwargs: Any) -> DataLoader:
         constraints = syn_schema.as_constraints()
 
         data_synth = pd.DataFrame([], columns=self.training_schema().features())
         for it in range(self.sampling_patience):
             # sample
             iter_samples = gen_cbk(count, **kwargs)
-            iter_samples_df = pd.DataFrame(
-                iter_samples, columns=self.training_schema().features()
-            )
+            iter_samples_df = pd.DataFrame(iter_samples, columns=self.training_schema().features())
 
             # Handle protected columns
             for col in syn_schema.protected_cols:
@@ -414,9 +411,8 @@ class Plugin(Serializable, metaclass=ABCMeta):
             # validate schema
             iter_samples_df = self.training_schema().adapt_dtypes(iter_samples_df)
 
-            if self.strict:
-                iter_samples_df = constraints.match(iter_samples_df)
-                iter_samples_df = iter_samples_df.drop_duplicates()
+            iter_samples_df = constraints.match(iter_samples_df)
+            iter_samples_df = iter_samples_df.drop_duplicates()
 
             data_synth = pd.concat([data_synth, iter_samples_df], ignore_index=True)
 
@@ -432,9 +428,7 @@ class Plugin(Serializable, metaclass=ABCMeta):
         self, gen_cbk: Callable, count: int, syn_schema: Schema, **kwargs: Any
     ) -> DataLoader:
         if self.data_info["data_type"] not in ["time_series", "time_series_survival"]:
-            raise ValueError(
-                f"Invalid data type for time series = {self.data_info['data_type']}"
-            )
+            raise ValueError(f"Invalid data type for time series = {self.data_info['data_type']}")
         constraints = syn_schema.as_constraints()
 
         data_synth = pd.DataFrame([], columns=self.training_schema().features())
@@ -444,9 +438,7 @@ class Plugin(Serializable, metaclass=ABCMeta):
         for it in range(self.sampling_patience):
             # sample
             if self.data_info["data_type"] == "time_series":
-                static, temporal, observation_times, outcome = gen_cbk(
-                    count - offset, **kwargs
-                )
+                static, temporal, observation_times, outcome = gen_cbk(count - offset, **kwargs)
                 loader = TimeSeriesDataLoader(
                     temporal_data=temporal,
                     observation_times=observation_times,
@@ -455,9 +447,7 @@ class Plugin(Serializable, metaclass=ABCMeta):
                     seq_offset=seq_offset,
                 )
             elif self.data_info["data_type"] == "time_series_survival":
-                static, temporal, observation_times, T, E = gen_cbk(
-                    count - offset, **kwargs
-                )
+                static, temporal, observation_times, T, E = gen_cbk(count - offset, **kwargs)
                 loader = TimeSeriesSurvivalDataLoader(
                     temporal_data=temporal,
                     observation_times=observation_times,
@@ -490,9 +480,7 @@ class Plugin(Serializable, metaclass=ABCMeta):
         return create_from_info(data_synth, data_info)
 
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
-    def _safe_generate_images(
-        self, gen_cbk: Callable, count: int, syn_schema: Schema, **kwargs: Any
-    ) -> DataLoader:
+    def _safe_generate_images(self, gen_cbk: Callable, count: int, syn_schema: Schema, **kwargs: Any) -> DataLoader:
         data_synth = gen_cbk(count, **kwargs)
 
         return create_from_info(data_synth, self.data_info)
@@ -652,13 +640,8 @@ class PluginLoader:
     def _add_category(self, category: str, name: str) -> "PluginLoader":
         """Add a new plugin category"""
         log.debug(f"Registering plugin category {category}")
-        if (
-            category in PLUGIN_CATEGORY_REGISTRY
-            and name in PLUGIN_CATEGORY_REGISTRY[category]
-        ):
-            raise TypeError(
-                f"Plugin {name} is already registered as category: {category}"
-            )
+        if category in PLUGIN_CATEGORY_REGISTRY and name in PLUGIN_CATEGORY_REGISTRY[category]:
+            raise TypeError(f"Plugin {name} is already registered as category: {category}")
         if PLUGIN_CATEGORY_REGISTRY.get(category, None) is not None:
             PLUGIN_CATEGORY_REGISTRY[category].append(name)
         else:
@@ -674,13 +657,10 @@ class PluginLoader:
             log.info(f"Plugin {name} already exists. Overwriting")
 
         if not issubclass(cls, self._expected_type):
-            raise ValueError(
-                f"Plugin {name} must derive the {self._expected_type} interface."
-            )
+            raise ValueError(f"Plugin {name} must derive the {self._expected_type} interface.")
 
-        if (
-            cls.type() not in PLUGIN_CATEGORY_REGISTRY.keys()
-            or name not in PLUGIN_CATEGORY_REGISTRY.get(cls.type(), [])
+        if cls.type() not in PLUGIN_CATEGORY_REGISTRY.keys() or name not in PLUGIN_CATEGORY_REGISTRY.get(
+            cls.type(), []
         ):
             self._add_category(str(cls.type()), name)
         PLUGIN_REGISTRY[name] = cls
