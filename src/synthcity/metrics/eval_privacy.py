@@ -248,7 +248,7 @@ class DeltaPresence(PrivacyEvaluator):
 
                 values.append(delta)
 
-        return {"score": float(np.max(values))}
+        return {"score": float(np.max(values)) if len(values) > 0 else np.nan}
 
 
 class IdentifiabilityScore(PrivacyEvaluator):
